@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -28,16 +29,13 @@ func addToArchive(tw *tar.Writer, relPath string, replacePath string) {
 		log.Fatal(err)
 	}
 
-	destPath := fStat.Name() // path.Clean(relPath)
-	if replacePath != "" {
-		destPath = "./" + strings.TrimLeft(replacePath, "/") + "/" + destPath
-	}
+	destPath := replacePath + fStat.Name()
 
 	hdr := &tar.Header{
 		Typeflag: tar.TypeReg,
 		Name:     destPath,
 		Size:     fStat.Size(),
-		Mode:     0x644,
+		Mode:     0644,
 		ModTime:  PortableMtime,
 	}
 
@@ -61,7 +59,7 @@ func addToArchive(tw *tar.Writer, relPath string, replacePath string) {
 }
 
 func main() {
-	replacePath := flag.String("dir", "", "Target directory")
+	directoryArg := flag.String("dir", "", "Target directory")
 	flag.Parse()
 
 	args := flag.Args()
@@ -89,9 +87,25 @@ func main() {
 		_ = tw.Close()
 	}(tw)
 
+	_ = tw.WriteHeader(&tar.Header{
+		Typeflag: tar.TypeDir,
+		Name:     "./",
+		Size:     0,
+		Mode:     0755,
+		ModTime:  PortableMtime,
+	})
+
+	replacePath := "./"
+	if *directoryArg != "" {
+		replacePath += strings.TrimLeft(
+			path.Clean(*directoryArg),
+			"./",
+		)
+	}
+
 	// Interpret arguments as input files to archive
 	for _, relPath := range args[1:] {
-		addToArchive(tw, relPath, *replacePath)
+		addToArchive(tw, relPath, replacePath)
 	}
 
 }
