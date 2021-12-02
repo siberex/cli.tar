@@ -1,7 +1,8 @@
 # cli.tar
 
-CLI tool that creates a TAR file from the list of inputs
+CLI tool that creates a TAR file from the list of inputs.
 
+Also provides custom Bazel rules `pkg_tar` and `file_size`
 
 
 # Prerequisites
@@ -14,11 +15,26 @@ ln -s "$GOPATH/bin/bazelisk" /usr/local/bin/bazel
 ```
 
 
-# CLI TAR binary
+# Bazel targets
+
+File size custom rule:
+
+```bash
+bazel run //rules:size
+```
+
+pkg_tar custom rule:
+
+```bash
+bazel build //rules:archive
+```
+
+CLI TAR go binary:
 
 ```bash
 bazel run //cmd/tar -- output.tar input1 input2 input3
 ```
+
 
 # Linters
 
