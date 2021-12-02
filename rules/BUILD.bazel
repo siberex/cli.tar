@@ -12,7 +12,8 @@ pkg_tar(
 
 file_size(
     name = "size",
-    file = ":archive",
+    #file = ":archive",
+    file = "1.txt",
 )
 
 pkg_tar_native(
