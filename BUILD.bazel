@@ -3,6 +3,7 @@ load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 
 # gazelle:prefix github.com/siberex/cli.tar
 gazelle(name = "gazelle")
+
 gazelle(
     name = "gazelle-update-repos",
     args = [
