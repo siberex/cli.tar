@@ -107,7 +107,9 @@ func main() {
 			path.Clean(*directoryArg),
 			"./",
 		)
-		replacePath += "/"
+		if replacePath[len(replacePath)-1] != '/' {
+			replacePath += "/"
+		}
 	}
 
 	// Emulate mkdir -p /very/long/path for tarball target directory with tar headers
