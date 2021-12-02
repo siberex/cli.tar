@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/tar"
+	"flag"
 	"io"
 	"log"
 	"os"
@@ -27,25 +28,18 @@ func addToArchive(tw *tar.Writer, relPath string, replacePath string) {
 		log.Fatal(err)
 	}
 
-	hdr, err := tar.FileInfoHeader(fStat, absPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	//destPath := path.Clean(relPath)
-	destPath := fStat.Name()
-
+	destPath := fStat.Name() // path.Clean(relPath)
 	if replacePath != "" {
 		destPath = "./" + strings.TrimLeft(replacePath, "/") + "/" + destPath
 	}
-	hdr.Name = destPath
 
-	// Portability
-	hdr.Uid = 0
-	hdr.Uname = "0"
-	hdr.Gid = 0
-	hdr.Gname = "0"
-	hdr.ModTime = PortableMtime
+	hdr := &tar.Header{
+		Typeflag: tar.TypeReg,
+		Name:     destPath,
+		Size:     fStat.Size(),
+		Mode:     0x644,
+		ModTime:  PortableMtime,
+	}
 
 	srcFile, err := os.Open(absPath)
 	if err != nil {
@@ -67,17 +61,19 @@ func addToArchive(tw *tar.Writer, relPath string, replacePath string) {
 }
 
 func main() {
-	if len(os.Args) < 3 {
-		log.Fatal("tar: no files specified\nUsage:\n  tar output.tar input1 [input2 ...]")
+	replacePath := flag.String("dir", "", "Target directory")
+	flag.Parse()
+
+	args := flag.Args()
+	if len(args) < 3 {
+		log.Fatal("tar: no files specified\nUsage:\n  tar [--dir /target/path] output.tar input1 [input2 ...]")
 	}
 
-	// FIXME --directory arg
-
-	outPath, _ := filepath.Abs(os.Args[1])
+	outPath, _ := filepath.Abs(args[0])
 
 	extension := filepath.Ext(outPath)
 	if extension != ".tar" {
-		log.Fatalf("tar: only .tar output supported, %s provided", os.Args[1])
+		log.Fatalf("tar: only .tar output supported, %s provided", args[0])
 	}
 
 	outFile, err := os.Create(outPath)
@@ -94,8 +90,8 @@ func main() {
 	}(tw)
 
 	// Interpret arguments as input files to archive
-	for _, relPath := range os.Args[2:] {
-		addToArchive(tw, relPath, "")
+	for _, relPath := range args[1:] {
+		addToArchive(tw, relPath, *replacePath)
 	}
 
 }
