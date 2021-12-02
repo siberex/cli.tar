@@ -19,3 +19,15 @@ ln -s "$GOPATH/bin/bazelisk" /usr/local/bin/bazel
 ```bash
 bazel run //cmd/tar -- output.tar input1 input2 input3
 ```
+
+# Linters
+
+```bash
+bazel run //:buildifier
+```
+
+# Tests
+
+```bash
+bazel test //rules:pkg_tar_test
+```

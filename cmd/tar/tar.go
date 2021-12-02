@@ -2,13 +2,13 @@ package main
 
 import (
 	"archive/tar"
-	"bytes"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
 )
 
-func addToArchive(tw *tar.Writer, outFile *os.File, relPath string) {
+func addToArchive(tw *tar.Writer, relPath string) {
 	fStat, err := os.Stat(relPath)
 	if err != nil {
 		log.Fatal(err)
@@ -28,11 +28,22 @@ func addToArchive(tw *tar.Writer, outFile *os.File, relPath string) {
 		log.Fatal(err)
 	}
 
+	srcFile, err := os.Open(absPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func(srcFile *os.File) {
+		_ = srcFile.Close()
+	}(srcFile)
+
 	if err = tw.WriteHeader(hdr); err != nil {
 		log.Fatal(err)
 	}
 
-	//FIXME tw.Write()
+	_, err = io.Copy(tw, srcFile)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 }
 
@@ -52,16 +63,18 @@ func main() {
 	if err != nil {
 		log.Fatalf("tar: could not write to the output file %s", outPath)
 	}
+	defer func(outFile *os.File) {
+		_ = outFile.Close()
+	}(outFile)
 
-	var buf bytes.Buffer
-	tw := tar.NewWriter(&buf)
+	tw := tar.NewWriter(outFile)
 	defer func(tw *tar.Writer) {
 		_ = tw.Close()
 	}(tw)
 
 	// Interpret arguments as input files to archive
 	for _, relPath := range os.Args[2:] {
-		addToArchive(tw, outFile, relPath)
+		addToArchive(tw, relPath)
 	}
 
 }
