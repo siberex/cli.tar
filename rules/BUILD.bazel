@@ -29,7 +29,7 @@ pkg_tar_native(
 sh_test(
     name = "pkg_tar_test",
     size = "small",
-    srcs = ["compare.sh"],
+    srcs = [":cmp_tar.sh"],
     args = [
         "$(location :archive)",
         "$(location :archive_native)",

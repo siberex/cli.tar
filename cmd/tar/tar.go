@@ -35,7 +35,7 @@ func addToArchive(tw *tar.Writer, relPath string, replacePath string) {
 		Typeflag: tar.TypeReg,
 		Name:     destPath,
 		Size:     fStat.Size(),
-		Mode:     0644,
+		Mode:     0555,
 		ModTime:  PortableMtime,
 	}
 
