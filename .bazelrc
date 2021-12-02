@@ -1,0 +1,7 @@
+
+common:debug --sandbox_debug
+common:debug --verbose_failures
+common:debug --subcommands
+
+# users should override this in .bazelrc.user
+try-import %workspace%/.bazelrc.user
