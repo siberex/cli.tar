@@ -1,4 +1,5 @@
-load(":rules.bzl", "pkg_tar", "file_size")
+load(":rules.bzl", "file_size", "pkg_tar")
+load("@rules_pkg//:pkg.bzl", pkg_tar_native = "pkg_tar")
 
 pkg_tar(
     name = "archive",
@@ -12,4 +13,28 @@ pkg_tar(
 file_size(
     name = "size",
     file = ":archive",
+)
+
+pkg_tar_native(
+    name = "archive_native",
+    srcs = [
+        "1.txt",
+        "2.txt",
+    ],
+    # Target directory
+    package_dir = "/my/layout",
+)
+
+sh_test(
+    name = "pkg_tar_test",
+    size = "small",
+    srcs = ["compare.sh"],
+    args = [
+        "$(location :archive)",
+        "$(location :archive_native)",
+    ],
+    data = [
+        ":archive",
+        ":archive_native",
+    ],
 )

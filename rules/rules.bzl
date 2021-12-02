@@ -19,7 +19,7 @@ def _file_size_impl(ctx):
     )
     return [DefaultInfo(
         executable = executable,
-        runfiles = ctx.runfiles(files = [ctx.file.file])
+        runfiles = ctx.runfiles(files = [ctx.file.file]),
     )]
 
 pkg_tar = rule(
@@ -53,5 +53,5 @@ file_size = rule(
             default = "file_size.sh",
         ),
     },
-    executable = True
+    executable = True,
 )
