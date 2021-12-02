@@ -6,16 +6,20 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 )
 
-func addToArchive(tw *tar.Writer, relPath string) {
+var PortableMtime = time.Unix(946684800, 0) // 2000-01-01 00:00:00.000 UTC
+
+func addToArchive(tw *tar.Writer, relPath string, replacePath string) {
 	fStat, err := os.Stat(relPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if fStat.IsDir() {
-		// FIXME: dir handling?
+		// TODO: dir handling?
 	}
 
 	absPath, err := filepath.Abs(relPath)
@@ -27,6 +31,21 @@ func addToArchive(tw *tar.Writer, relPath string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	//destPath := path.Clean(relPath)
+	destPath := fStat.Name()
+
+	if replacePath != "" {
+		destPath = "./" + strings.TrimLeft(replacePath, "/") + "/" + destPath
+	}
+	hdr.Name = destPath
+
+	// Portability
+	hdr.Uid = 0
+	hdr.Uname = "0"
+	hdr.Gid = 0
+	hdr.Gname = "0"
+	hdr.ModTime = PortableMtime
 
 	srcFile, err := os.Open(absPath)
 	if err != nil {
@@ -52,6 +71,8 @@ func main() {
 		log.Fatal("tar: no files specified\nUsage:\n  tar output.tar input1 [input2 ...]")
 	}
 
+	// FIXME --directory arg
+
 	outPath, _ := filepath.Abs(os.Args[1])
 
 	extension := filepath.Ext(outPath)
@@ -74,7 +95,7 @@ func main() {
 
 	// Interpret arguments as input files to archive
 	for _, relPath := range os.Args[2:] {
-		addToArchive(tw, relPath)
+		addToArchive(tw, relPath, "")
 	}
 
 }
