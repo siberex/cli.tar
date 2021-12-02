@@ -26,7 +26,7 @@ def _file_size_impl(ctx):
         template = ctx.file._script_template,
         output = executable,
         substitutions = {
-            "{INPUT}": ctx.file.file.path,
+            "{INPUT}": ctx.file.file.short_path,
         },
         is_executable = True,
     )
@@ -64,7 +64,7 @@ file_size = rule(
         ),
         "_script_template": attr.label(
             allow_single_file = True,
-            default = "file_size.sh",
+            default = "file_size_tpl.sh",
         ),
     },
     executable = True,
