@@ -58,6 +58,20 @@ func addToArchive(tw *tar.Writer, relPath string, replacePath string) {
 
 }
 
+func writeDirHeader(tw *tar.Writer, path string) {
+	if path == "" {
+		return
+	}
+
+	_ = tw.WriteHeader(&tar.Header{
+		Typeflag: tar.TypeDir,
+		Name:     path,
+		Size:     0,
+		Mode:     0755,
+		ModTime:  PortableMtime,
+	})
+}
+
 func main() {
 	directoryArg := flag.String("dir", "", "Target directory")
 	flag.Parse()
@@ -87,20 +101,22 @@ func main() {
 		_ = tw.Close()
 	}(tw)
 
-	_ = tw.WriteHeader(&tar.Header{
-		Typeflag: tar.TypeDir,
-		Name:     "./",
-		Size:     0,
-		Mode:     0755,
-		ModTime:  PortableMtime,
-	})
-
 	replacePath := "./"
 	if *directoryArg != "" {
-		replacePath += strings.TrimLeft(
+		replacePath += strings.Trim(
 			path.Clean(*directoryArg),
 			"./",
 		)
+		replacePath += "/"
+	}
+
+	// Emulate mkdir -p /very/long/path for tarball target directory with tar headers
+	subdirs := strings.SplitAfter(replacePath, "/")
+	subdirs = subdirs[:len(subdirs)-1]
+	incPath := ""
+	for _, subdir := range subdirs {
+		incPath += subdir
+		writeDirHeader(tw, incPath)
 	}
 
 	// Interpret arguments as input files to archive
