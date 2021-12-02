@@ -8,15 +8,19 @@ def _pkg_tar_impl(ctx):
     )
 
 def _file_size_impl(ctx):
-    # stat -f%z rules/1.txt
-    # stat --format="%s" rules/1.txt
-    # ls -ln rules/1.txt | awk '{print $5}'
-    # wc -c < rules/1.txt | awk '{print $1}'
-
-    ctx.actions.run_shell(
-        outputs = [],
-        command = "echo 1"
+    executable = ctx.actions.declare_file(ctx.label.name)
+    ctx.actions.expand_template(
+        template = ctx.file._script_template,
+        output = executable,
+        substitutions = {
+            "{INPUT}": ctx.file.file.path,
+        },
+        is_executable = True,
     )
+    return [DefaultInfo(
+        executable = executable,
+        runfiles = ctx.runfiles(files = [ctx.file.file])
+    )]
 
 pkg_tar = rule(
     doc = """Create tarball archive from provided input files""",
@@ -43,6 +47,10 @@ file_size = rule(
             doc = "Input file to get byte size for",
             mandatory = True,
             allow_single_file = True,
+        ),
+        "_script_template": attr.label(
+            allow_single_file = True,
+            default = "file_size.sh",
         ),
     },
     executable = True
