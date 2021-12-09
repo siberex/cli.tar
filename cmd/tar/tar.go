@@ -84,8 +84,8 @@ func main() {
 	outPath, _ := filepath.Abs(args[0])
 
 	extension := filepath.Ext(outPath)
-	if extension != ".tar" {
-		log.Fatalf("tar: only .tar output supported, %s provided", args[0])
+	if strings.ToLower(extension) != ".tar" {
+		outPath += ".tar"
 	}
 
 	outFile, err := os.Create(outPath)
