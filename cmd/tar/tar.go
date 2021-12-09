@@ -21,7 +21,9 @@ func addToArchive(tw *tar.Writer, relPath string, replacePath string) {
 	}
 
 	if fStat.IsDir() {
-		// TODO: dir handling?
+		// Skip dir handling, Bazel should not produce such inputs.
+		// Also, CLI intentionally should produce flat tarballs (same as rules_pkg)
+		return
 	}
 
 	absPath, err := filepath.Abs(relPath)
@@ -58,12 +60,12 @@ func addToArchive(tw *tar.Writer, relPath string, replacePath string) {
 
 }
 
-func writeDirHeader(tw *tar.Writer, path string) {
+func writeDirHeader(tw *tar.Writer, path string) error {
 	if path == "" {
-		return
+		return nil
 	}
 
-	_ = tw.WriteHeader(&tar.Header{
+	return tw.WriteHeader(&tar.Header{
 		Typeflag: tar.TypeDir,
 		Name:     path,
 		Size:     0,
@@ -118,7 +120,10 @@ func main() {
 	incPath := ""
 	for _, subdir := range subdirs {
 		incPath += subdir
-		writeDirHeader(tw, incPath)
+		err := writeDirHeader(tw, incPath)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	// Interpret arguments as input files to archive

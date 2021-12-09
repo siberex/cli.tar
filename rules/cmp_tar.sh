@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 ls1=$(mktemp)
 ls2=$(mktemp)
 
